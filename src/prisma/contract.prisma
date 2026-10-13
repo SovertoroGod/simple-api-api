@@ -1,9 +1,26 @@
 // use prisma-8
 
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid(2))
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  todos        Todo[]
+}
+
 model Todo {
-  id        String   @id @default(cuid(2))
+  id        String   @id @default(uuid())
   title     String
   completed Boolean  @default(false)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt temporal.updatedAt()
 }
