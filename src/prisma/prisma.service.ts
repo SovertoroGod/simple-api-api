@@ -12,4 +12,5 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     }
 
     readonly todo = db.orm.public.Todo;
+    readonly user = db.orm.public.User;
 }
