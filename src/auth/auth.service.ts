@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from "bcrypt"
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -54,6 +54,14 @@ export class AuthService {
             user: this.toPublicUser(user)
         }
 
+    }
+
+    async me(id: string) {
+        const user = await this.prisma.user.where({ id }).first();
+        if (!user) {
+            throw new NotFoundException("User not found")
+        }
+        return this.toPublicUser(user);
     }
 
     private toPublicUser(user: { id: string; email: string, name: string | null, role: string }) {

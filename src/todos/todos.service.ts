@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -46,5 +46,34 @@ export class TodosService {
 
   removeAll() {
     return this.prisma.todo.where({}).deleteAll();
+  }
+
+  async createOwn(userId: string, dto: CreateTodoDto) {
+    const todo = await this.prisma.todo.create({
+      title: dto.title,
+      completed: dto.completed ?? false,
+      userId: userId
+    });
+    return todo;
+  }
+
+  async findOwn(userId: string) {
+    return this.prisma.todo.where({ userId }).orderBy((model) => model.createdAt.desc()).all();
+  }
+
+  async deleteOwn(userId: string, id: string) {
+
+    const exitTodo = await this.prisma.todo.where({ id: id, userId: userId }).first();
+
+    if (!exitTodo) {
+      throw new NotFoundException("Todo not found");
+    }
+
+    if (exitTodo.userId !== userId) {
+      throw new UnauthorizedException("You are not authorized to delete this todo");
+    }
+
+    await this.prisma.todo.where({ id: id, userId: userId }).delete();
+    return { message: "Todo deleted successfully" };
   }
 }
